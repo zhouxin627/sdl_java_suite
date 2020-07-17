@@ -33,6 +33,8 @@ public class TransportManagerTests extends AndroidTestCase2 {
         public void onError(String info) {}
         @Override
         public boolean onLegacyModeEnabled(String info) {return false; }
+        @Override
+        public void onWifiStateUpdate(boolean isWifiConnected) {}
     };
 
 

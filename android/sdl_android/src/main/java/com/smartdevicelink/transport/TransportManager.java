@@ -39,6 +39,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -58,7 +60,8 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class TransportManager extends TransportManagerBase{
     private static final String TAG = "TransportManager";
-
+    private static final String WIFI_AP_STATE_CHANGED_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED";
+    private static final int WIFI_AP_STATE_ENABLED = 13;
 
     TransportBrokerImpl transport;
 
@@ -104,6 +107,13 @@ public class TransportManager extends TransportManagerBase{
         }else if(legacyBluetoothTransport != null){
             legacyBluetoothTransport.start();
         }
+
+        if(contextWeakReference.get() != null) {
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+            intentFilter.addAction(WIFI_AP_STATE_CHANGED_ACTION);
+            contextWeakReference.get().registerReceiver(wifiBroadcastReceiver, intentFilter);
+        }
     }
 
     @Override
@@ -114,6 +124,10 @@ public class TransportManager extends TransportManagerBase{
         }else if(legacyBluetoothTransport != null){
             legacyBluetoothTransport.stop();
             legacyBluetoothTransport = null;
+        }
+
+        if(contextWeakReference != null){
+            contextWeakReference.get().unregisterReceiver(wifiBroadcastReceiver);
         }
     }
 
@@ -524,4 +538,27 @@ public class TransportManager extends TransportManagerBase{
         }
     }
 
+    private BroadcastReceiver wifiBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent != null){
+                String action = intent.getAction();
+                if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
+                    NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                    if (info != null) {
+                        boolean isWifiConnected = info.getState().equals(NetworkInfo.State.CONNECTED);
+                        if (mIsWifiConnected != isWifiConnected) {
+                            mIsWifiConnected = isWifiConnected;
+                            if (transportListener != null) {
+                                transportListener.onWifiStateUpdate(mIsWifiConnected);
+                            }
+                        }
+                    }
+                } else if (WIFI_AP_STATE_CHANGED_ACTION.equals(action)) {
+                    int state = intent.getIntExtra("wifi_state", 0);
+                    mIsWifiAPStateEnabled = state == WIFI_AP_STATE_ENABLED;
+                }
+            }
+        }
+    };
 }

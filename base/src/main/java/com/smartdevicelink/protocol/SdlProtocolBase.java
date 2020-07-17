@@ -453,7 +453,8 @@ public class SdlProtocolBase {
                     if (transportManager != null && transportManager.isConnected(supportedSecondary, null)) {
                         //A supported secondary transport is already connected
                         return true;
-                    } else if (secondaryTransportParams != null && secondaryTransportParams.containsKey(supportedSecondary)) {
+                    } else if (secondaryTransportParams != null && secondaryTransportParams.containsKey(supportedSecondary)
+                            && (transportManager != null && (transportManager.isWifiConnected() || transportManager.isWifiAPStateEnabled()))) {
                         //A secondary transport is available to connect to
                         return true;
                     }
@@ -1174,10 +1175,12 @@ public class SdlProtocolBase {
                 return;
             } else {
                 Log.d(TAG, "onTransportDisconnected - " + disconnectedTransport.getType().name());
-                if (disconnectedTransport.getType() == TransportType.TCP && secondaryTransportParams != null){
-                    if (activeTransports.containsValue(disconnectedTransport)) {
-                        //If the established TCP connection is disconnected, the corresponding IP and port are invalid and should be removed from the list.
-                        // Otherwise, istransportforserviceavailable is always true after disconnection
+                if (disconnectedTransport.getType() == TransportType.TCP && secondaryTransportParams != null) {
+                    if (activeTransports.containsValue(disconnectedTransport)
+                            && (transportManager != null && (transportManager.isWifiConnected() || transportManager.isWifiAPStateEnabled()))) {
+                        // If the established TCP connection is disconnected, the corresponding IP and port are invalid and should be removed from the list.
+                        // Otherwise, isTransportForServiceAvailable is always true after disconnection
+                        // Do not remove when Wifi is connected or AP is enabled in HS side, because app need use it when connected again.
                         secondaryTransportParams.remove(TransportType.TCP);
                     }
                 }
@@ -1274,6 +1277,14 @@ public class SdlProtocolBase {
             }else{
                 Log.d(TAG, "Bluetooth is not an acceptable transport; not moving to legacy mode");
                 return false;
+            }
+        }
+
+        @Override
+        public void onWifiStateUpdate(boolean isWifiConnected) {
+            Log.d(TAG, "onWifiStateUpdate: isWifiConnected = " + isWifiConnected);
+            if (isWifiConnected) {
+                notifyDevTransportListener();
             }
         }
     };
@@ -1456,6 +1467,9 @@ public class SdlProtocolBase {
 
                     //A new secondary transport just became available. Notify the developer.
                     notifyDevTransportListener();
+                } else {
+                    // Remove secondaryTransportParams when HU Wifi disconnected.
+                    secondaryTransportParams.remove(TransportType.TCP);
                 }
 
             }

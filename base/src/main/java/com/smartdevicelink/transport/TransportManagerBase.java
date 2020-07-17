@@ -46,6 +46,8 @@ public abstract class TransportManagerBase {
 
     final List<TransportRecord> transportStatus;
     final TransportEventListener transportListener;
+    boolean mIsWifiConnected;
+    boolean mIsWifiAPStateEnabled;
 
     public TransportManagerBase(BaseTransportConfig config,TransportEventListener listener){
         transportListener = listener;
@@ -124,6 +126,14 @@ public abstract class TransportManagerBase {
         //Base implementation does nothing
     }
 
+    public boolean isWifiConnected() {
+        return mIsWifiConnected;
+    }
+
+    public boolean isWifiAPStateEnabled() {
+        return mIsWifiAPStateEnabled;
+    }
+
     synchronized void enterLegacyMode(final String info){
         //Base implementation does nothing
     }
@@ -151,5 +161,8 @@ public abstract class TransportManagerBase {
          * @return if the listener is ok with entering legacy mode
          */
         boolean onLegacyModeEnabled(String info);
+
+        /** Called to indicate that Wifi was connected/disconnected (by HS side) */
+        void onWifiStateUpdate(boolean isWifiConnected);
     }
 }
