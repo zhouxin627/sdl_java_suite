@@ -74,6 +74,7 @@ public class MultiplexTransportConfig extends BaseTransportConfig{
 
 	List<TransportType> primaryTransports, secondaryTransports;
 	boolean requiresHighBandwidth = false;
+	boolean requiresWiFiEvents = false;
 	Boolean requiresAudioSupport = null;
 	TransportListener transportListener;
 
@@ -202,7 +203,24 @@ public class MultiplexTransportConfig extends BaseTransportConfig{
 		return this.requiresAudioSupport;
 	}
 
+	/**
+	 * Set whether or not this app requires receiving WiFi events
+	 *
+	 * @param requiresWiFiEvents whether the app should be treated as requiring receiving WiFi events
+	 */
+	public void setRequiresWiFiEvents(boolean requiresWiFiEvents){
+		this.requiresWiFiEvents = requiresWiFiEvents;
+	}
 
+	/**
+	 * Get the setting from this config to see whether the app should be treated as requiring
+	 * receiving WiFi events
+	 *
+	 * @return whether the app should be treated as requiring receiving WiFi events
+	 */
+	public boolean requiresWiFiEvents(){
+		return this.requiresWiFiEvents;
+	}
 
 	/**
 	 * This will set the order in which a primary transport is determined to be accepted or not.

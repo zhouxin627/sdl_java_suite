@@ -108,7 +108,7 @@ public class TransportManager extends TransportManagerBase{
             legacyBluetoothTransport.start();
         }
 
-        if(contextWeakReference.get() != null) {
+        if(contextWeakReference.get() != null && mConfig.requiresWiFiEvents()) {
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
             intentFilter.addAction(WIFI_AP_STATE_CHANGED_ACTION);
@@ -126,7 +126,7 @@ public class TransportManager extends TransportManagerBase{
             legacyBluetoothTransport = null;
         }
 
-        if(contextWeakReference != null){
+        if(contextWeakReference.get() != null && mConfig.requiresWiFiEvents()) {
             contextWeakReference.get().unregisterReceiver(wifiBroadcastReceiver);
         }
     }

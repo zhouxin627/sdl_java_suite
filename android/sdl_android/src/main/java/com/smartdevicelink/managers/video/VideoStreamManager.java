@@ -68,6 +68,7 @@ import com.smartdevicelink.proxy.rpc.enums.TouchType;
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCNotificationListener;
 import com.smartdevicelink.streaming.video.SdlRemoteDisplay;
 import com.smartdevicelink.streaming.video.VideoStreamingParameters;
+import com.smartdevicelink.transport.enums.TransportType;
 import com.smartdevicelink.transport.utl.TransportRecord;
 import com.smartdevicelink.util.DebugTool;
 import com.smartdevicelink.util.Version;
@@ -96,6 +97,7 @@ public class VideoStreamManager extends BaseVideoStreamManager {
 	private boolean isTransportAvailable = false;
 	private boolean hasStarted;
 	private CompletionListener listener = null;
+	private List<TransportRecord> lastConnectedTransports;
 
 	// INTERNAL INTERFACES
 
@@ -499,7 +501,11 @@ public class VideoStreamManager extends BaseVideoStreamManager {
 		isTransportAvailable = videoStreamTransportAvail;
 
 		if(internalInterface.getProtocolVersion().isNewerThan(new Version(5,1,0)) >= 0){
-			if(videoStreamTransportAvail){
+			boolean isTCPDisconnect = false;
+			if (containsTCPTransport(lastConnectedTransports) && !containsTCPTransport(connectedTransports)) {
+				isTCPDisconnect = true;
+			}
+			if(videoStreamTransportAvail && !isTCPDisconnect) {
 				if (hasStarted && listener != null && getState() == SETTING_UP) {
 					// When the TCP connection is disconnected, the stateMachine will be set to SETTING_UP in 4.11.0.
 					start(listener);
@@ -516,6 +522,18 @@ public class VideoStreamManager extends BaseVideoStreamManager {
 				transitionToState(ERROR);
 			}
 		}
+		lastConnectedTransports = new ArrayList<>(connectedTransports);
+	}
+
+	boolean containsTCPTransport(List<TransportRecord> connectedTransports) {
+		if (connectedTransports != null && connectedTransports.size() > 0) {
+			for (TransportRecord transportRecord: connectedTransports) {
+				if(transportRecord.getType() == TransportType.TCP) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
     void createTouchScalar(ImageResolution resolution, DisplayMetrics displayMetrics) {

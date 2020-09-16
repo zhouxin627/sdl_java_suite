@@ -766,9 +766,6 @@ public class SdlProtocolBase {
                     listenerList = new ArrayList<>();
                     secondaryTransportListeners.put(secondaryTransportType, listenerList);
                 }
-                else {
-                    listenerList.clear();
-                }
 
                 //Check to see if the primary transport can also be used as a backup
                 final boolean primaryTransportBackup = transportPriorityForServiceMap.get(serviceType).contains(PRIMARY_TRANSPORT_ID);
@@ -1173,17 +1170,6 @@ public class SdlProtocolBase {
                 }
                 iSdlProtocol.shutdown("No transports left connected");
                 return;
-            } else {
-                Log.d(TAG, "onTransportDisconnected - " + disconnectedTransport.getType().name());
-                if (disconnectedTransport.getType() == TransportType.TCP && secondaryTransportParams != null) {
-                    if (activeTransports.containsValue(disconnectedTransport)
-                            && (transportManager != null && (transportManager.isWifiConnected() || transportManager.isWifiAPStateEnabled()))) {
-                        // If the established TCP connection is disconnected, the corresponding IP and port are invalid and should be removed from the list.
-                        // Otherwise, isTransportForServiceAvailable is always true after disconnection
-                        // Do not remove when Wifi is connected or AP is enabled in HS side, because app need use it when connected again.
-                        secondaryTransportParams.remove(TransportType.TCP);
-                    }
-                }
             }
 
             //In the future we will actually compare the record but at this point we can assume only

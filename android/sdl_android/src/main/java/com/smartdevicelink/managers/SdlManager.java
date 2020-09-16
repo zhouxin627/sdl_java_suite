@@ -673,6 +673,9 @@ public class SdlManager extends BaseSdlManager{
 					if(multiplexTransportConfig.requiresAudioSupport() == null){
 						multiplexTransportConfig.setRequiresAudioSupport(isMediaApp);
 					}
+					if (hmiTypes.contains(AppHMIType.NAVIGATION) || hmiTypes.contains(AppHMIType.PROJECTION)) {
+						multiplexTransportConfig.setRequiresWiFiEvents(true);
+					}
 				}
 
 				proxy = new SdlProxyBase(proxyBridge, context, appName, shortAppName, isMediaApp, hmiLanguage,
